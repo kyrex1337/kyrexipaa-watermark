@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: macos-14
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -22,17 +24,29 @@ jobs:
           make clean || true
           make package
 
-      - name: Find built files
+      - name: Find and copy dylib
         run: |
-          echo "=== Searching for dylib and deb ==="
-          find .theos -name "*.dylib" -type f
-          find packages -name "*.deb" -type f 2>/dev/null || true
+          echo "=== All dylib files ==="
+          find . -name "*.dylib" -type f -not -path "./.git/*"
+          DY=$(find .theos -name "KYREXIPAA.dylib" -type f | head -n 1)
+          if [ -z "$DY" ]; then
+            DY=$(find .theos -name "*.dylib" -type f | head -n 1)
+          fi
+          echo "Picked: $DY"
+          cp "$DY" KYREXIPAA.dylib
+          ls -la KYREXIPAA.dylib
 
-      - name: Upload dylib
+      - name: Commit dylib to repo
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add -f KYREXIPAA.dylib
+          git commit -m "Build KYREXIPAA.dylib [skip ci]" || true
+          git push || true
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: KYREXIPAA-dylib
-          path: |
-            .theos/**/*.dylib
-            packages/*.deb
+          path: KYREXIPAA.dylib
           if-no-files-found: error
