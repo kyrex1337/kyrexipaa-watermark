@@ -1,0 +1,11 @@
+ARCHS = arm64 arm64e
+TARGET = iphone:clang:latest:12.0
+
+include $(THEOS)/makefiles/common.mk
+
+TWEAK_NAME = KYREXIPAA
+KYREXIPAA_FILES = kyrexipaa.xm
+KYREXIPAA_CFLAGS = -fobjc-arc
+KYREXIPAA_FRAMEWORKS = UIKit Foundation
+
+include $(THEOS_MAKE_PATH)/tweak.mk
