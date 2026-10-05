@@ -1,0 +1,8 @@
+Package: com.kyrexipaa.watermark
+Name: KYREX IPA Watermark
+Version: 2.0.0
+Architecture: iphoneos-arm
+Description: Watermark by KYREX IPA with Telegram button
+Maintainer: KYREX IPA
+Author: KYREX IPA
+Section: Tweaks
