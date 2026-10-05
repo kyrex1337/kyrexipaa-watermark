@@ -1,23 +1,19 @@
 #import <UIKit/UIKit.h>
 
-#define WATERMARK_TAG 0x4B595245  // 'KYRE'
+#define WATERMARK_TAG 0x4B595245
 #define TELEGRAM_URL  @"https://t.me/kyrexipaa"
 
 static BOOL ky_alert_shown = NO;
 
 static UIWindow *ky_key_window(void) {
     UIWindow *keyWindow = nil;
-
-    if (@available(iOS 13.0, *)) {
-        for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
-            if (![scene isKindOfClass:[UIWindowScene class]]) continue;
-            for (UIWindow *w in ((UIWindowScene *)scene).windows) {
-                if (w.isKeyWindow) { keyWindow = w; break; }
-            }
-            if (keyWindow) break;
+    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) continue;
+        for (UIWindow *w in ((UIWindowScene *)scene).windows) {
+            if (w.isKeyWindow) { keyWindow = w; break; }
         }
+        if (keyWindow) break;
     }
-    if (!keyWindow) keyWindow = UIApplication.sharedApplication.keyWindow;
     return keyWindow;
 }
 
@@ -27,7 +23,6 @@ static void ky_show_watermark(void) {
     UIWindow *keyWindow = ky_key_window();
     if (!keyWindow) return;
 
-    // защита от двойного показа
     for (UIView *v in keyWindow.subviews) {
         if (v.tag == WATERMARK_TAG) return;
     }
@@ -44,24 +39,20 @@ static void ky_show_watermark(void) {
                                             message:@"Привет, этот файл был создан каналом KYREX IPA"
                                      preferredStyle:UIAlertControllerStyleAlert];
 
-    // Кнопка "Перейти" — открывает Telegram
     [alert addAction:[UIAlertAction actionWithTitle:@"Перейти"
                                               style:UIAlertActionStyleDefault
                                             handler:^(UIAlertAction *action) {
         NSURL *url = [NSURL URLWithString:TELEGRAM_URL];
-        if (url && [UIApplication.sharedApplication canOpenURL:url]) {
+        if (url) {
             [UIApplication.sharedApplication openURL:url
-                                              options:@{}
-                                    completionHandler:nil];
+                                             options:@{}
+                                   completionHandler:nil];
         }
     }]];
 
-    // Кнопка "Отменить" — просто закрывает алерт
     [alert addAction:[UIAlertAction actionWithTitle:@"Отменить"
                                               style:UIAlertActionStyleCancel
-                                            handler:^(UIAlertAction *action) {
-        // ничего не делаем — приложение работает дальше
-    }]];
+                                            handler:nil]];
 
     UIView *tagView = [[UIView alloc] initWithFrame:CGRectZero];
     tagView.tag = WATERMARK_TAG;
@@ -77,13 +68,3 @@ static void ky_init(void) {
         ky_show_watermark();
     });
 }
-
-%hook UIApplication
-- (void)applicationDidBecomeActive:(UIApplication *)application {
-    %orig;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
-                   dispatch_get_main_queue(), ^{
-        ky_show_watermark();
-    });
-}
-%end
