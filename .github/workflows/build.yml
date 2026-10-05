@@ -1,0 +1,39 @@
+name: Build Dylib
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-13
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Theos
+        run: |
+          export THEOS=$HOME/theos
+          git clone --recursive https://github.com/theos/theos.git $THEOS
+          echo "THEOS=$THEOS" >> $GITHUB_ENV
+          echo "$THEOS/bin" >> $GITHUB_PATH
+
+      - name: Download SDK
+        run: |
+          mkdir -p $THEOS/sdks
+          cd $THEOS/sdks
+          curl -L -o iPhoneOS16.5.sdk.tar.gz https://github.com/theos/sdks/archive/refs/heads/master.tar.gz
+          tar -xzf iPhoneOS16.5.sdk.tar.gz --strip-components=1
+          ls -la $THEOS/sdks
+
+      - name: Build
+        run: |
+          make clean || true
+          make package
+
+      - name: Upload dylib
+        uses: actions/upload-artifact@v4
+        with:
+          name: KYREXIPAA-dylib
+          path: .theos/obj/KYREXIPAA.dylib
